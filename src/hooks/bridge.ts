@@ -14,12 +14,11 @@
  */
 
 import { detectKeywordsWithType, removeCodeBlocks, getPrimaryKeyword, getAllKeywords } from './keyword-detector/index.js';
-import { readRalphState, incrementRalphIteration, clearRalphState, detectCompletionPromise, createRalphLoopHook } from './ralph/index.js';
+import { readRalphState, incrementRalphIteration, clearRalphState, createRalphLoopHook } from './ralph/index.js';
 import { processOrchestratorPreTool } from './omc-orchestrator/index.js';
 import { addBackgroundTask, completeBackgroundTask } from '../hud/background-tasks.js';
 import {
   readVerificationState,
-  startVerification,
   getArchitectVerificationPrompt,
   clearVerificationState
 } from './ralph/index.js';
@@ -279,30 +278,6 @@ async function processRalph(input: HookInput): Promise<HookOutput> {
     };
   }
 
-  // Check for completion promise in transcript
-  const completed = detectCompletionPromise(sessionId, state.completion_promise);
-
-  if (completed) {
-    // Start architect verification instead of completing immediately
-    startVerification(directory, state.completion_promise, state.prompt);
-    const newVerificationState = readVerificationState(directory);
-
-    if (newVerificationState) {
-      const verificationPrompt = getArchitectVerificationPrompt(newVerificationState);
-      return {
-        continue: true,
-        message: verificationPrompt
-      };
-    }
-
-    // Fallback if verification couldn't be started
-    clearRalphState(directory);
-    return {
-      continue: true,
-      message: `[RALPH LOOP COMPLETE] Task completed after ${state.iteration} iteration(s).`
-    };
-  }
-
   // Check max iterations
   if (state.iteration >= state.max_iterations) {
     clearRalphState(directory);
@@ -321,12 +296,12 @@ async function processRalph(input: HookInput): Promise<HookOutput> {
 
   const continuationPrompt = `[RALPH LOOP - ITERATION ${newState.iteration}/${newState.max_iterations}]
 
-Your previous attempt did not output the completion promise. Continue working on the task.
+The task is NOT complete yet. Continue working.
 
 IMPORTANT:
 - Review your progress so far
 - Continue from where you left off
-- When FULLY complete, output: <promise>${newState.completion_promise}</promise>
+- When FULLY complete (after Architect verification), run \`/oh-my-claudecode:cancel\` to cleanly exit and clean up state files. If cancel fails, retry with \`/oh-my-claudecode:cancel --force\`.
 - Do not stop until the task is truly done
 
 Original task:

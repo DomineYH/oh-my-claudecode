@@ -4,7 +4,7 @@
  * Unified handler for persistent work modes: ultrawork, ralph, and todo-continuation.
  * This hook intercepts Stop events and enforces work continuation based on:
  * 1. Active ultrawork mode with pending todos
- * 2. Active ralph with incomplete promise
+ * 2. Active ralph loop (until cancelled via /oh-my-claudecode:cancel)
  * 3. Any pending todos (general enforcement)
  *
  * Priority order: Ralph > Ultrawork > Todo Continuation
@@ -23,11 +23,9 @@ import {
   readRalphState,
   incrementRalphIteration,
   clearRalphState,
-  detectCompletionPromise,
   getPrdCompletionStatus,
   getRalphContext,
   readVerificationState,
-  startVerification,
   recordArchitectFeedback,
   getArchitectVerificationPrompt,
   getArchitectRejectionContinuationPrompt,
@@ -227,38 +225,6 @@ async function checkRalphLoop(
     };
   }
 
-  // Check for completion promise in transcript
-  const completed = detectCompletionPromise(sessionId || '', state.completion_promise);
-
-  if (completed) {
-    // Completion promise detected - START architect verification instead of completing
-    startVerification(workingDir, state.completion_promise, state.prompt);
-    const newVerificationState = readVerificationState(workingDir);
-
-    if (newVerificationState) {
-      const verificationPrompt = getArchitectVerificationPrompt(newVerificationState);
-      return {
-        shouldBlock: true,
-        message: verificationPrompt,
-        mode: 'ralph',
-        metadata: {
-          iteration: state.iteration,
-          maxIterations: state.max_iterations
-        }
-      };
-    }
-
-    // Fallback if verification state couldn't be created
-    // Also deactivate ultrawork if it was active alongside ralph
-    clearRalphState(workingDir);
-    deactivateUltrawork(workingDir);
-    return {
-      shouldBlock: false,
-      message: `[RALPH LOOP COMPLETE] Task completed after ${state.iteration} iteration(s). Great work!`,
-      mode: 'none'
-    };
-  }
-
   // Check max iterations
   if (state.iteration >= state.max_iterations) {
     // Also deactivate ultrawork if it was active alongside ralph
@@ -267,7 +233,7 @@ async function checkRalphLoop(
     deactivateUltrawork(workingDir);
     return {
       shouldBlock: false,
-      message: `[RALPH LOOP STOPPED] Max iterations (${state.max_iterations}) reached without completion promise. Consider reviewing the task requirements.`,
+      message: `[RALPH LOOP STOPPED] Max iterations (${state.max_iterations}) reached without completion. Consider reviewing the task requirements.`,
       mode: 'none'
     };
   }
@@ -288,13 +254,13 @@ async function checkRalphLoop(
 
 [RALPH - ITERATION ${newState.iteration}/${newState.max_iterations}]
 
-Your previous attempt did not output the completion promise. The work is NOT done yet.
+The task is NOT complete yet. Continue working.
 ${ralphContext}
 CRITICAL INSTRUCTIONS:
 1. Review your progress and the original task
 ${prdInstruction}
 3. Continue from where you left off
-4. When FULLY complete, output: <promise>${newState.completion_promise}</promise>
+4. When FULLY complete (after Architect verification), run \`/oh-my-claudecode:cancel\` to cleanly exit and clean up state files. If cancel fails, retry with \`/oh-my-claudecode:cancel --force\`.
 5. Do NOT stop until the task is truly done
 
 ${newState.prompt ? `Original task: ${newState.prompt}` : ''}

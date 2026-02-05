@@ -3,109 +3,38 @@
  *
  * Exposes `ask_gemini` tool via the Claude Agent SDK's createSdkMcpServer helper.
  * Tools will be available as mcp__g__ask_gemini
+ *
+ * Note: The standalone version (gemini-standalone-server.ts) is used for the
+ * external-process .mcp.json registration with proper stdio transport.
  */
 
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
-import { spawn } from 'child_process';
-import { readFileSync } from 'fs';
-import { detectGeminiCli } from './cli-detection.js';
-
-// Default model can be overridden via environment variable
-const GEMINI_DEFAULT_MODEL = process.env.OMC_GEMINI_DEFAULT_MODEL || 'gemini-3-pro';
-const GEMINI_TIMEOUT = parseInt(process.env.OMC_GEMINI_TIMEOUT || '120000', 10);
-
-/**
- * Execute Gemini CLI command and return the response
- */
-function executeGemini(prompt: string, model?: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const args = model ? ['--model', model, '-p', prompt] : ['-p', prompt];
-    const child = spawn('gemini', args, {
-      timeout: GEMINI_TIMEOUT,
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (data: Buffer) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on('data', (data: Buffer) => {
-      stderr += data.toString();
-    });
-
-    child.on('close', (code) => {
-      if (code === 0 || stdout.trim()) {
-        resolve(stdout.trim());
-      } else {
-        reject(new Error(`Gemini exited with code ${code}: ${stderr || 'No output'}`));
-      }
-    });
-
-    child.on('error', (err) => {
-      reject(new Error(`Failed to spawn Gemini CLI: ${err.message}`));
-    });
-  });
-}
+import {
+  GEMINI_DEFAULT_MODEL,
+  GEMINI_MODEL_FALLBACKS,
+  GEMINI_VALID_ROLES,
+  handleAskGemini
+} from './gemini-core.js';
 
 // Define the ask_gemini tool using the SDK tool() helper
 const askGeminiTool = tool(
   "ask_gemini",
-  "Send a prompt to Google Gemini CLI for large-context analysis, second-opinion review, or alternative perspective. Gemini excels at analyzing large files with its 1M token context window. Requires Gemini CLI to be installed (npm install -g @google/gemini-cli).",
+  "Send a prompt to Google Gemini CLI for design review or implementation validation. Gemini excels at analyzing large codebases with its 1M token context window. Requires agent_role to specify the perspective (designer or executor). Requires Gemini CLI (npm install -g @google/gemini-cli).",
   {
-    prompt: { type: "string", description: "The prompt to send to Gemini" },
-    model: { type: "string", description: `Gemini model to use (default: ${GEMINI_DEFAULT_MODEL}). Set OMC_GEMINI_DEFAULT_MODEL env var to change default. Options include: gemini-2.5-pro, gemini-2.5-flash` },
+    agent_role: { type: "string", description: `Required. Agent perspective for Gemini: ${GEMINI_VALID_ROLES.join(', ')}. Gemini is optimized for design review and implementation tasks.` },
     files: { type: "array", items: { type: "string" }, description: "File paths for Gemini to analyze (leverages 1M token context window)" },
+    prompt: { type: "string", description: "The prompt to send to Gemini" },
+    model: { type: "string", description: `Gemini model to use (default: ${GEMINI_DEFAULT_MODEL}). Automatic fallback chain: ${GEMINI_MODEL_FALLBACKS.join(' → ')}` },
   } as any,
   async (args: any) => {
-    const { prompt, model = GEMINI_DEFAULT_MODEL, files } = args as {
+    const { prompt, agent_role, model, files } = args as {
       prompt: string;
+      agent_role: string;
       model?: string;
       files?: string[];
     };
 
-    // Check CLI availability
-    const detection = detectGeminiCli();
-    if (!detection.available) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: `Gemini CLI is not available: ${detection.error}\n\n${detection.installHint}`
-        }]
-      };
-    }
-
-    // Build prompt with file context
-    let fullPrompt = prompt;
-    if (files && files.length > 0) {
-      const fileContents = files.map(f => {
-        try {
-          return `--- File: ${f} ---\n${readFileSync(f, 'utf-8')}`;
-        } catch (err) {
-          return `--- File: ${f} --- (Error reading: ${(err as Error).message})`;
-        }
-      }).join('\n\n');
-      fullPrompt = `${fileContents}\n\n${prompt}`;
-    }
-
-    try {
-      const response = await executeGemini(fullPrompt, model);
-      return {
-        content: [{
-          type: 'text' as const,
-          text: response
-        }]
-      };
-    } catch (err) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: `Gemini CLI error: ${(err as Error).message}`
-        }]
-      };
-    }
+    return handleAskGemini({ prompt, agent_role, model, files });
   }
 );
 

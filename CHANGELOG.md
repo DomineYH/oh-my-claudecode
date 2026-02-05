@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Codex/Gemini Agent Routing** - Codex (`ask_codex`) now recommended only for reviewer and planning agents (architect, planner, critic, analyst, code-reviewer, security-reviewer, tdd-guide). Gemini (`ask_gemini`) recommended only for design agents (designer, writer, vision). All other agents have no external consultation recommendation.
 - **CLAUDE.md Compacted** - Reduced from 679 to 389 lines (43% smaller). All 33 agents, all skills, and all MCP tools with descriptions now inline. Removed external doc references and redundant troubleshooting section.
 - **Agent Tiers Reference** - Added External AI Consultation section with strict Codex/Gemini routing per agent domain
+- **Model Routing Enforcement** (#384) - Advisory agents (architect, planner, critic) enforce read-only behavior; execution agents get full tool access
+- **Gemini Model Fallback Chain** - Gemini now uses fallback chain: gemini-3-pro-preview → gemini-3-flash-preview → gemini-2.5-pro → gemini-2.5-flash
 
 ### Performance
 
@@ -37,6 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Job Management Tools** (#420) - Four new MCP tools for background Codex/Gemini job control: `wait_for_job`, `check_job_status`, `kill_job`, `list_jobs`
 - **Version Drift Detection** (#422) - Automatic detection and cleanup of stale plugin versions on session start
+- **HUD Fine-Grained Control** (#399) - Configurable sessionHealth display elements with per-element enable/disable options for context, rate limit, and cost displays
+- **MCP Prompt File Parameters** (#416) - New `prompt_file` and `output_file` parameters for `ask_codex` and `ask_gemini` tools, enabling file-based prompt passing to avoid OS argument length limits
+- **MCP Prompt Persistence Audit Trail** - Prompts now persisted to disk with audit trail for debugging and replay
+- **MCP State Tools Enhancement** - Improved state management tools with better error handling
+- **Plugin-Scoped Codex/Gemini MCP Servers** - Codex and Gemini now registered as plugin-scoped MCP servers with proper discovery
+- **MCP System Prompt Injection** - Codex/Gemini tools now inject system prompts for better agent context
+- **Built-in MCP Tools** - State, notepad, and project memory tools added as built-in MCP tools
+- **Configurable Stop Hook Callbacks** (#395) - Hooks now support configurable callbacks for stop events
+- **Swarm Aggressive Mode** - Wave-based spawning and micro-task decomposition for swarm coordination
+- **Codex/Gemini Timeout Increase** - Both Codex and Gemini timeouts increased to 1 hour for complex analysis tasks
 
 ### Fixed
 
@@ -47,10 +59,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cache Hit Rate Formula** (#425) - Corrected cache hit rate calculation to include all input token types (was exceeding 100%)
 - **HUD Token Formatting** (#417) - Fixed `formatTokenCount()` returning "0.999k" for values under 1000
 - **LSP goto_definition Null Safety** (#417) - Fixed crash when LSP returns `LocationLink` objects instead of `Location`
+- **MCP Output File Suffix** (#419) - Fixed `output_file` writing to `.raw` suffix instead of the specified path
+- **MCP Stdin Prompt Piping** - Fixed prompts being passed via command line arguments, which could exceed OS limits. Now piped via stdin.
+- **HUD Semver Sorting** (#373) - Fixed version comparison using `semverCompare` for proper plugin cache version selection
+- **Security Hardening** - Cross-platform compatibility improvements and security hardening across MCP tools
+- **Codex/Gemini Role Allowlists** - Fixed role allowlists to match documented routing recommendations
+- **Conflict Markers and Dedup** (#395) - Resolved committed conflict markers and deduplicated index.ts exports
 
 ### Breaking Changes (MCP)
 
 - **MCP Response Contract** (#424) - `ask_codex` and `ask_gemini` now return file paths instead of inline content. `output_file` parameter is now required. Added `working_directory` parameter for path resolution.
+- **Prompt Parameter Deprecated** (#421) - The `prompt` parameter for `ask_codex` and `ask_gemini` is removed. Use `prompt_file` instead, which writes prompts to files to avoid OS argument length limits.
+- **Agent Role Required** - `agent_role` parameter is now required for both `ask_codex` and `ask_gemini` tools
 
 ---
 

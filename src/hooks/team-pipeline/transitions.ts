@@ -1,5 +1,6 @@
 import type { TeamPipelinePhase, TeamPipelineState, TeamTransitionResult } from './types.js';
 import { markTeamPhase } from './state.js';
+import { readRalphState, incrementRalphIteration } from '../ralph/loop.js';
 
 const ALLOWED: Record<TeamPipelinePhase, TeamPipelinePhase[]> = {
   'team-plan': ['team-prd'],
@@ -84,6 +85,16 @@ export function transitionTeamPhase(
       state,
       reason: guardFailure,
     };
+  }
+
+  // When team-verify transitions to team-fix, increment ralph iteration if ralph is active.
+  // This coordinates the two loops: team-fix counts as a ralph iteration so ralph's
+  // max_iterations bound applies to the combined team+ralph workflow.
+  if (state.phase === 'team-verify' && next === 'team-fix') {
+    const ralphState = readRalphState(state.project_path, state.session_id);
+    if (ralphState && ralphState.active) {
+      incrementRalphIteration(state.project_path, state.session_id);
+    }
   }
 
   return markTeamPhase(state, next, reason);

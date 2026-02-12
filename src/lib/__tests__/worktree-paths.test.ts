@@ -19,6 +19,9 @@ import {
   getProcessSessionId,
   resetProcessSessionId,
   validateSessionId,
+  resolveToWorktreeRoot,
+  validateWorkingDirectory,
+  getWorktreeRoot,
 } from '../worktree-paths.js';
 
 const TEST_DIR = '/tmp/worktree-paths-test';
@@ -148,6 +151,53 @@ describe('worktree-paths', () => {
       expect(existsSync(join(TEST_DIR, '.omc', 'logs'))).toBe(true);
       expect(existsSync(join(TEST_DIR, '.omc', 'notepads'))).toBe(true);
       expect(existsSync(join(TEST_DIR, '.omc', 'drafts'))).toBe(true);
+    });
+  });
+
+  describe('resolveToWorktreeRoot', () => {
+    it('should return process.cwd()-based root when no directory provided', () => {
+      const result = resolveToWorktreeRoot();
+      // We are inside a git repo, so it should return a real root
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
+    });
+
+    it('should resolve a subdirectory to its git worktree root', () => {
+      // Use the current repo - create a subdir and verify it resolves to root
+      const root = getWorktreeRoot(process.cwd());
+      if (!root) return; // skip if not in a git repo
+      const subdir = join(root, 'src');
+      const result = resolveToWorktreeRoot(subdir);
+      expect(result).toBe(root);
+    });
+
+    it('should fall back to process.cwd root for non-git directories', () => {
+      const result = resolveToWorktreeRoot('/tmp');
+      // /tmp is not a git repo, so should fall back to process.cwd root
+      const expectedRoot = getWorktreeRoot(process.cwd()) || process.cwd();
+      expect(result).toBe(expectedRoot);
+    });
+  });
+
+  describe('validateWorkingDirectory (#576)', () => {
+    it('should return worktree root even when workingDirectory is a subdirectory', () => {
+      // This is the core #576 fix: a subdirectory must never be returned
+      const root = getWorktreeRoot(process.cwd());
+      if (!root) return; // skip if not in a git repo
+      const subdir = join(root, 'src');
+      const result = validateWorkingDirectory(subdir);
+      expect(result).toBe(root);
+    });
+
+    it('should return trusted root when no workingDirectory provided', () => {
+      const root = getWorktreeRoot(process.cwd()) || process.cwd();
+      const result = validateWorkingDirectory();
+      expect(result).toBe(root);
+    });
+
+    it('should throw for directories outside the trusted root', () => {
+      // /etc is outside any repo worktree root
+      expect(() => validateWorkingDirectory('/etc')).toThrow('outside the trusted worktree root');
     });
   });
 

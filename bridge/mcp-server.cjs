@@ -21328,12 +21328,6 @@ var MODE_CONFIGS = {
     name: "UltraQA",
     stateFile: "ultraqa-state.json",
     activeProperty: "active"
-  },
-  ecomode: {
-    name: "Ecomode",
-    stateFile: "ecomode-state.json",
-    activeProperty: "active",
-    hasGlobalState: false
   }
 };
 function getStateDir(cwd) {
@@ -21501,8 +21495,7 @@ var EXECUTION_MODES = [
   "team",
   "ralph",
   "ultrawork",
-  "ultraqa",
-  "ecomode"
+  "ultraqa"
 ];
 var STATE_TOOL_MODES = [...EXECUTION_MODES, "ralplan"];
 function getStatePath(mode, root) {

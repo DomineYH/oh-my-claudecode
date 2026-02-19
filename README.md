@@ -28,7 +28,7 @@ English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](READM
 
 **Step 2: Setup**
 ```bash
-/omc:omc-setup
+/omc-setup
 ```
 
 **Step 3: Build something**
@@ -43,7 +43,7 @@ That's it. Everything else is automatic.
 Starting in **v4.1.7**, **Team** is the canonical orchestration surface in OMC. Legacy entrypoints like **swarm** and **ultrapilot** are still supported, but they now **route to Team under the hood**.
 
 ```bash
-/omc:team 3:executor "fix all TypeScript errors"
+/team 3:executor "fix all TypeScript errors"
 ```
 
 Team runs as a staged pipeline:
@@ -71,7 +71,7 @@ Enable Claude Code native teams in `~/.claude/settings.json`:
 /plugin marketplace update omc
 
 # 2. Re-run setup to refresh configuration
-/omc:omc-setup
+/omc-setup
 ```
 
 > **Note:** If marketplace auto-update is not enabled, you must manually run `/plugin marketplace update omc` to sync the latest version before running setup.
@@ -79,7 +79,7 @@ Enable Claude Code native teams in `~/.claude/settings.json`:
 If you experience issues after updating, clear the old plugin cache:
 
 ```bash
-/omc:omc-doctor
+/omc-doctor
 ```
 
 <h1 align="center">Your Claude Just Have been Steroided.</h1>
@@ -114,7 +114,6 @@ Multiple strategies for different use cases — from Team-backed orchestration t
 | **Autopilot** | Autonomous execution (single lead agent) | End-to-end feature work with minimal ceremony |
 | **Ultrawork** | Maximum parallelism (non-team) | Burst parallel fixes/refactors where Team isn't needed |
 | **Ralph** | Persistent mode with verify/fix loops | Tasks that must complete fully (no silent partials) |
-| **Ecomode** | Token-efficient routing | Budget-conscious iteration |
 | **Pipeline** | Sequential, staged processing | Multi-step transformations with strict ordering |
 | **Swarm / Ultrapilot (legacy)** | Compatibility facades that route to **Team** | Existing workflows and older docs |
 
@@ -126,7 +125,7 @@ Multiple strategies for different use cases — from Team-backed orchestration t
 
 ### Developer Experience
 
-- **Magic keywords** - `ralph`, `ulw`, `eco`, `plan` for explicit control
+- **Magic keywords** - `ralph`, `ulw`, `plan` for explicit control
 - **HUD statusline** - Real-time orchestration metrics in your status bar
 - **Skill learning** - Extract reusable patterns from your sessions
 - **Analytics & cost tracking** - Understand token usage across all sessions
@@ -141,11 +140,10 @@ Optional shortcuts for power users. Natural language works fine without them.
 
 | Keyword | Effect | Example |
 |---------|--------|---------|
-| `team` | Canonical Team orchestration | `/omc:team 3:executor "fix all TypeScript errors"` |
+| `team` | Canonical Team orchestration | `/team 3:executor "fix all TypeScript errors"` |
 | `autopilot` | Full autonomous execution | `autopilot: build a todo app` |
 | `ralph` | Persistence mode | `ralph: refactor auth` |
 | `ulw` | Maximum parallelism | `ulw fix all errors` |
-| `eco` | Token-efficient execution | `eco: migrate database` |
 | `plan` | Planning interview | `plan the API` |
 | `ralplan` | Iterative planning consensus | `ralplan this feature` |
 | `swarm` | Legacy keyword (routes to Team) | `swarm 5 agents: fix lint errors` |

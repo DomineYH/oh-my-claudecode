@@ -121,9 +121,6 @@ ralph (persistence wrapper)
 autopilot (autonomous execution)
  \-- includes: ralph
      \-- includes: ultrawork (this skill)
-
- (token efficiency)
- \-- modifies: ultrawork's model selection
 ```
 
 Ultrawork is the parallelism layer. Ralph adds persistence and verification. Autopilot adds the full lifecycle pipeline.

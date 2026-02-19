@@ -26,7 +26,7 @@
 
 **ステップ 2: セットアップ**
 ```bash
-/omc:omc-setup
+/omc-setup
 ```
 
 **ステップ 3: 何か作ってみる**
@@ -45,7 +45,7 @@ autopilot: build a REST API for managing tasks
 /plugin marketplace update omc
 
 # 2. セットアップを再実行して設定を更新
-/omc:omc-setup
+/omc-setup
 ```
 
 > **注意:** マーケットプレイスの自動更新が有効になっていない場合は、セットアップ実行前に `/plugin marketplace update omc` を手動で実行して最新バージョンを同期する必要があります。
@@ -53,7 +53,7 @@ autopilot: build a REST API for managing tasks
 更新後に問題が発生した場合は、古いプラグインキャッシュをクリアしてください：
 
 ```bash
-/omc:omc-doctor
+/omc-doctor
 ```
 
 <h1 align="center">あなたの Claude がステロイド級にパワーアップ。</h1>
@@ -87,7 +87,6 @@ autopilot: build a REST API for managing tasks
 | **Ultrawork** | 並列 | あらゆるタスクの最大並列化 |
 | **Ralph** | 粘り強い | 必ず完遂すべきタスク |
 | **Ultrapilot** | 3〜5倍速 | 複数コンポーネントシステム |
-| **Ecomode** | 高速 + 30〜50%節約 | 予算重視プロジェクト |
 | **Swarm** | 協調 | 並列独立タスク |
 | **Pipeline** | 逐次 | 多段階処理 |
 
@@ -99,7 +98,7 @@ autopilot: build a REST API for managing tasks
 
 ### 開発者体験
 
-- **マジックキーワード** - `ralph`、`ulw`、`eco`、`plan` で明示的制御
+- **マジックキーワード** - `ralph`、`ulw`、`plan` で明示的制御
 - **HUD ステータスライン** - ステータスバーでリアルタイムのオーケストレーション指標を表示
 - **スキル学習** - セッションから再利用可能なパターンを抽出
 - **分析とコスト追跡** - 全セッションのトークン使用状況を把握
@@ -117,7 +116,6 @@ autopilot: build a REST API for managing tasks
 | `autopilot` | 完全自律実行 | `autopilot: build a todo app` |
 | `ralph` | 粘り強いモード | `ralph: refactor auth` |
 | `ulw` | 最大並列化 | `ulw fix all errors` |
-| `eco` | トークン効率実行 | `eco: migrate database` |
 | `plan` | 計画インタビュー | `plan the API` |
 | `ralplan` | 反復的計画合意形成 | `ralplan this feature` |
 

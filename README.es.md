@@ -26,7 +26,7 @@
 
 **Paso 2: Configurar**
 ```bash
-/omc:omc-setup
+/omc-setup
 ```
 
 **Paso 3: Construye algo**
@@ -45,7 +45,7 @@ Eso es todo. Todo lo demás es automático.
 /plugin marketplace update omc
 
 # 2. Volver a ejecutar el setup para actualizar la configuracion
-/omc:omc-setup
+/omc-setup
 ```
 
 > **Nota:** Si la actualizacion automatica del marketplace no esta activada, debes ejecutar manualmente `/plugin marketplace update omc` para sincronizar la ultima version antes de ejecutar el setup.
@@ -53,7 +53,7 @@ Eso es todo. Todo lo demás es automático.
 Si experimentas problemas despues de actualizar, limpia la cache antigua del plugin:
 
 ```bash
-/omc:omc-doctor
+/omc-doctor
 ```
 
 <h1 align="center">Tu Claude acaba de recibir esteroides.</h1>
@@ -87,7 +87,6 @@ Múltiples estrategias para diferentes casos de uso - desde construcciones compl
 | **Ultrawork** | Paralelo | Máximo paralelismo para cualquier tarea |
 | **Ralph** | Persistente | Tareas que deben completarse totalmente |
 | **Ultrapilot** | 3-5x más rápido | Sistemas multi-componente |
-| **Ecomode** | Rápido + 30-50% más barato | Proyectos conscientes del presupuesto |
 | **Swarm** | Coordinado | Tareas independientes en paralelo |
 | **Pipeline** | Secuencial | Procesamiento multi-etapa |
 
@@ -99,7 +98,7 @@ Múltiples estrategias para diferentes casos de uso - desde construcciones compl
 
 ### Experiencia de Desarrollo
 
-- **Palabras clave mágicas** - `ralph`, `ulw`, `eco`, `plan` para control explícito
+- **Palabras clave mágicas** - `ralph`, `ulw`, `plan` para control explícito
 - **Barra de estado HUD** - Métricas de orquestación en tiempo real en tu barra de estado
 - **Aprendizaje de habilidades** - Extrae patrones reutilizables de tus sesiones
 - **Análisis y seguimiento de costos** - Comprende el uso de tokens en todas las sesiones
@@ -117,7 +116,6 @@ Atajos opcionales para usuarios avanzados. El lenguaje natural funciona bien sin
 | `autopilot` | Ejecución completamente autónoma | `autopilot: build a todo app` |
 | `ralph` | Modo persistencia | `ralph: refactor auth` |
 | `ulw` | Máximo paralelismo | `ulw fix all errors` |
-| `eco` | Ejecución eficiente en tokens | `eco: migrate database` |
 | `plan` | Entrevista de planificación | `plan the API` |
 | `ralplan` | Consenso de planificación iterativa | `ralplan this feature` |
 

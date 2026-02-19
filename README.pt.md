@@ -26,7 +26,7 @@
 
 **Passo 2: Configure**
 ```bash
-/omc:omc-setup
+/omc-setup
 ```
 
 **Passo 3: Crie algo**
@@ -41,7 +41,7 @@ autopilot: build a REST API for managing tasks
 A partir da **v4.1.7**, o **Team** é a superfície canônica de orquestração no OMC. Entrypoints legados como **swarm** e **ultrapilot** continuam com suporte, mas agora **roteiam para Team por baixo dos panos**.
 
 ```bash
-/omc:team 3:executor "fix all TypeScript errors"
+/team 3:executor "fix all TypeScript errors"
 ```
 
 O Team roda como um pipeline em estágios:
@@ -69,7 +69,7 @@ Ative os times nativos do Claude Code em `~/.claude/settings.json`:
 /plugin marketplace update omc
 
 # 2. Execute o setup novamente para atualizar a configuração
-/omc:omc-setup
+/omc-setup
 ```
 
 > **Observação:** Se a atualização automática do marketplace não estiver habilitada, você precisa executar manualmente `/plugin marketplace update omc` para sincronizar a versão mais recente antes de executar o setup.
@@ -77,7 +77,7 @@ Ative os times nativos do Claude Code em `~/.claude/settings.json`:
 Se você tiver problemas depois de atualizar, limpe o cache antigo do plugin:
 
 ```bash
-/omc:omc-doctor
+/omc-doctor
 ```
 
 <h1 align="center">Seu Claude acabou de tomar esteroides.</h1>
@@ -112,7 +112,6 @@ Múltiplas estratégias para diferentes casos de uso — da orquestração com T
 | **Autopilot** | Execução autônoma (um único agente líder) | Trabalho de feature ponta a ponta com cerimônia mínima |
 | **Ultrawork** | Paralelismo máximo (sem Team) | Rajadas de correções/refatorações paralelas quando Team não é necessário |
 | **Ralph** | Modo persistente com loops de verify/fix | Tarefas que precisam ser concluídas por completo (sem parciais silenciosos) |
-| **Ecomode** | Roteamento eficiente em tokens | Iteração com foco em orçamento |
 | **Pipeline** | Processamento sequencial por estágios | Transformações em múltiplas etapas com ordenação rigorosa |
 | **Swarm / Ultrapilot (legacy)** | Fachadas de compatibilidade que roteiam para **Team** | Workflows existentes e documentação antiga |
 
@@ -124,7 +123,7 @@ Múltiplas estratégias para diferentes casos de uso — da orquestração com T
 
 ### Experiência do Desenvolvedor
 
-- **Magic keywords** - `ralph`, `ulw`, `eco`, `plan` para controle explícito
+- **Magic keywords** - `ralph`, `ulw`, `plan` para controle explícito
 - **HUD statusline** - Métricas de orquestração em tempo real na sua barra de status
 - **Aprendizado de skills** - Extraia padrões reutilizáveis das suas sessões
 - **Analytics e rastreamento de custos** - Entenda o uso de tokens em todas as sessões
@@ -139,11 +138,10 @@ Atalhos opcionais para usuários avançados. Linguagem natural funciona bem sem 
 
 | Palavra-chave | Efeito | Exemplo |
 |---------------|--------|---------|
-| `team` | Orquestração canônica com Team | `/omc:team 3:executor "fix all TypeScript errors"` |
+| `team` | Orquestração canônica com Team | `/team 3:executor "fix all TypeScript errors"` |
 | `autopilot` | Execução autônoma completa | `autopilot: build a todo app` |
 | `ralph` | Modo persistente | `ralph: refactor auth` |
 | `ulw` | Paralelismo máximo | `ulw fix all errors` |
-| `eco` | Execução eficiente em tokens | `eco: migrate database` |
 | `plan` | Entrevista de planejamento | `plan the API` |
 | `ralplan` | Consenso de planejamento iterativo | `ralplan this feature` |
 | `swarm` | Palavra-chave legada (roteia para Team) | `swarm 5 agents: fix lint errors` |

@@ -94,9 +94,9 @@ Coordination:
 - `critic` (opus): plan/design critical challenge
 - `vision` (sonnet): image/screenshot/diagram analysis
 
-Deprecated aliases (backward compatibility): `researcher` -> `document-specialist`, `tdd-guide` -> `test-engineer`.
+Deprecated aliases (backward compatibility only): `researcher` -> `document-specialist`, `tdd-guide` -> `test-engineer`.
 
-Some roles are alias prompts mapped to core agent types; the canonical set is in `src/agents/definitions.ts`.
+Compatibility aliases may still be normalized during routing, but canonical runtime registry keys are defined in `src/agents/definitions.ts`.
 </agent_catalog>
 
 ---
@@ -117,7 +117,7 @@ Available MCP providers:
 Any OMC agent role can be passed as `agent_role` to either provider. The role loads a matching system prompt if one exists; otherwise the task runs without role-specific framing.
 
 Provider strengths (use these to choose the right provider):
-- **Codex excels at**: architecture review, planning validation, critical analysis, code review, security review, test strategy. Recommended roles: architect, planner, critic, analyst, code-reviewer, security-reviewer, tdd-guide.
+- **Codex excels at**: architecture review, planning validation, critical analysis, code review, security review, test strategy. Recommended roles: architect, planner, critic, analyst, code-reviewer, security-reviewer, test-engineer.
 - **Gemini excels at**: UI/UX design review, documentation, visual analysis, large-context tasks (1M tokens). Recommended roles: designer, writer, vision.
 
 Always attach `context_files`/`files` when calling MCP tools. MCP output is advisory -- verification (tests, typecheck) should come from tool-using agents.
@@ -135,7 +135,7 @@ MCP output is wrapped as untrusted content; response files have output safety co
 
 <tools>
 External AI (MCP providers):
-- Codex: `mcp__x__ask_codex` with `agent_role` (any role; best for: architect, planner, critic, analyst, code-reviewer, security-reviewer, tdd-guide)
+- Codex: `mcp__x__ask_codex` with `agent_role` (any role; best for: architect, planner, critic, analyst, code-reviewer, security-reviewer, test-engineer)
 - Gemini: `mcp__g__ask_gemini` with `agent_role` (any role; best for: designer, writer, vision)
 - Job management: `check_job_status`, `wait_for_job`, `kill_job`, `list_jobs` (per provider)
 
@@ -176,7 +176,7 @@ Workflow Skills:
 - `autopilot` ("autopilot", "build me", "I want a"): full autonomous execution from idea to working code
 - `ralph` ("ralph", "don't stop", "must complete"): self-referential loop with verifier verification; includes ultrawork
 - `ultrawork` ("ulw", "ultrawork"): maximum parallelism with parallel agent orchestration
-- `swarm` ("swarm"): compatibility facade over Team; preserves `/swarm` syntax, routes to Team staged pipeline
+- `swarm` ("swarm"): **deprecated compatibility alias** over Team; use `/team` (still routes to Team staged pipeline for now)
 - `ultrapilot` ("ultrapilot", "parallel build"): compatibility facade over Team; maps onto Team's staged runtime
 - `team` ("team", "coordinated team", "team ralph"): N coordinated agents using Claude Code native teams with stage-aware agent routing; supports `team ralph` for persistent team execution
 - `pipeline` ("pipeline", "chain agents"): sequential agent chaining with data passing
@@ -206,7 +206,7 @@ MCP Delegation (auto-detected when an intent phrase is present):
 
 Notifications: `configure-discord` ("configure discord", "setup discord", "discord webhook"), `configure-telegram` ("configure telegram", "setup telegram", "telegram bot")
 
-Utilities: `cancel`, `note`, `learner`, `omc-setup`, `mcp-setup`, `hud`, `omc-doctor`, `omc-help`, `trace`, `release`, `project-session-manager` (psm), `skill`, `writer-memory`, `ralph-init`, `learn-about-omc`
+Utilities: `cancel`, `note`, `learner`, `omc-setup`, `mcp-setup`, `hud`, `omc-doctor`, `omc-help`, `trace`, `release`, `project-session-manager` (`psm` is deprecated alias), `skill`, `writer-memory`, `ralph-init`, `learn-about-omc`
 
 Conflict resolution: explicit mode keywords (`ulw`, `ultrawork`) override defaults. Generic "fast"/"parallel" reads `~/.claude/.omc-config.json` -> `defaultExecutionMode`. Ralph includes ultrawork (persistence wrapper). Autopilot can transition to ralph or ultraqa. Autopilot and ultrapilot are mutually exclusive.
 </skills>

@@ -365,9 +365,7 @@ export function getAgentDefinitions(overrides?: Partial<Record<string, Partial<A
     // ============================================================
     // BACKWARD COMPATIBILITY (Deprecated)
     // ============================================================
-    'document-specialist': documentSpecialistAgent,
-    researcher: documentSpecialistAgent,
-    'tdd-guide': testEngineerAgent
+    'document-specialist': documentSpecialistAgent
   };
 
   const result: Record<string, { description: string; prompt: string; tools?: string[]; disallowedTools?: string[]; model?: ModelType; defaultModel?: ModelType }> = {};

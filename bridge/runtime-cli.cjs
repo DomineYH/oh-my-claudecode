@@ -620,7 +620,7 @@ _queued: ${(/* @__PURE__ */ new Date()).toISOString()}_
       }
     })
   );
-  const hasCliWorkers = agentTypes.some((t) => t !== "claude");
+  const hasCliWorkers = agentTypes.length > 0;
   let stopWatchdog;
   if (hasCliWorkers) {
     stopWatchdog = watchdogCliWorkers(
@@ -712,8 +712,6 @@ function watchdogCliWorkers(teamName, workerNames, agentTypes, cwd, intervalMs, 
   const tick = async () => {
     for (let i = 0; i < workerNames.length; i++) {
       const wName = workerNames[i];
-      const agentType = agentTypes[i] ?? agentTypes[0];
-      if (agentType === "claude") continue;
       if (processed.has(wName)) continue;
       const donePath = (0, import_path4.join)(stateRoot(cwd, teamName), "workers", wName, "done.json");
       const signal = await readJsonSafe(donePath);

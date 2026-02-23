@@ -218,8 +218,8 @@ export async function startTeam(config: TeamConfig): Promise<TeamRuntime> {
     })
   );
 
-  // Start watchdog for non-Claude CLI workers
-  const hasCliWorkers = agentTypes.some(t => t !== 'claude');
+  // Start watchdog for all CLI workers — claude now writes done.json too
+  const hasCliWorkers = agentTypes.length > 0;
   let stopWatchdog: (() => void) | undefined;
 
   if (hasCliWorkers) {
@@ -345,8 +345,6 @@ export function watchdogCliWorkers(
   const tick = async () => {
     for (let i = 0; i < workerNames.length; i++) {
       const wName = workerNames[i];
-      const agentType = agentTypes[i] ?? agentTypes[0];
-      if (agentType === 'claude') continue;
       if (processed.has(wName)) continue;
 
       const donePath = join(stateRoot(cwd, teamName), 'workers', wName, 'done.json');

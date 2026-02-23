@@ -99,9 +99,15 @@ state. No repeated polling needed; one call instead of N.
 ```
 mcp__team__omc_run_team_wait({
   "job_id": "{jobId}",
-  "timeout_ms": 300000
+  "timeout_ms": 60000
 })
 ```
+
+> **Timeout guidance:** Use `60000` (60 s) as the default. If the job times out, do NOT
+> retry with a longer timeout — instead check whether workers are still alive with
+> `mcp__team__omc_run_team_status`, then call `omc_run_team_cleanup` to kill stale panes,
+> and report the partial results to the user. Teams can silently stall due to stuck workers
+> or tmux session issues; a short wait timeout surfaces these problems faster.
 
 Returns when done:
 ```json

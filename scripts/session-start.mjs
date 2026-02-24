@@ -443,15 +443,17 @@ ${cleanContent}
                 rmSync(versionPath, { recursive: true, force: true });
               }
 
-              // Create relative symlink: e.g. 4.4.1 -> 4.4.3
+              // Create symlink: e.g. 4.4.1 -> 4.4.3
+              // On Windows, use 'junction' type which works without Developer Mode
+              // or admin privileges. On Unix, use default (relative symlink).
               try {
-                symlinkSync(latest, versionPath);
+                const isWin = process.platform === 'win32';
+                const symlinkTarget = isWin ? join(cacheBase, latest) : latest;
+                symlinkSync(symlinkTarget, versionPath, isWin ? 'junction' : undefined);
               } catch (symlinkErr) {
                 // EEXIST: another session raced us and created the symlink — safe to ignore.
-                // Other errors (e.g. Windows without dev mode): leave old dir in place.
                 if (symlinkErr?.code !== 'EEXIST') {
-                  // Symlink genuinely failed — not a race condition.
-                  // Leave the path as-is rather than losing it entirely.
+                  // Symlink genuinely failed. Leave the path as-is rather than losing it.
                 }
               }
             } catch {

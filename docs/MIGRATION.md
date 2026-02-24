@@ -19,23 +19,112 @@ This guide covers all migration paths for oh-my-claudecode. Find your current ve
 
 ### TL;DR
 
-`omc_run_team_start` no longer supports `timeoutSeconds`. Team wait timeouts are now strictly controlled by `omc_run_team_wait.timeout_ms`, and timed-out waits never kill worker panes.
+`omc_run_team_start` no longer accepts `timeoutSeconds`. Passing it now returns an API error. Use `omc_run_team_wait` with `timeout_ms` to limit how long you block (workers keep running), and call `omc_run_team_cleanup` only when you explicitly want to stop worker panes.
 
-### What Changed
+### What `timeoutSeconds` Did Before
 
-- Removed runtime timeout support from team runtime startup (`timeoutSeconds`).
-- `omc_run_team_wait.timeout_ms` still only limits the blocking wait call.
-- Worker-pane termination is explicit via `omc_run_team_cleanup`.
+In earlier versions, `omc_run_team_start` accepted a `timeoutSeconds` parameter that would automatically kill all worker panes if the team had not completed within that duration. Example of the old pattern:
 
-### Migration Steps
+```js
+// OLD — no longer works
+mcp__team__omc_run_team_start({
+  teamName: "my-team",
+  agentTypes: ["claude", "codex"],
+  tasks: [...],
+  cwd: "/path/to/project",
+  timeoutSeconds: 120   // <-- would silently kill workers after 2 minutes
+})
+```
 
-1. Remove `timeoutSeconds` from all `omc_run_team_start` calls.
-2. Use `omc_run_team_wait` repeatedly (or with a larger `timeout_ms`) to keep waiting.
-3. Call `omc_run_team_cleanup` only when you intentionally want to stop worker panes.
+### Why It Was Removed
+
+`timeoutSeconds` was a footgun: it silently killed worker panes mid-task whenever the wall-clock limit was reached, with no way for the caller to distinguish "timed out and killed" from "completed normally". This caused data loss (workers writing files when killed), confusing error states, and made it impossible to resume or inspect stalled teams. Callers who set a conservative timeout often lost work that was 90% done.
+
+The fix separates concerns cleanly:
+- **Wait timeout** (`omc_run_team_wait timeout_ms`) — limits how long *your call* blocks. Workers keep running.
+- **Explicit cleanup** (`omc_run_team_cleanup`) — kills worker panes only when you decide to cancel.
+
+### How to Migrate
+
+**Step 1** — Remove `timeoutSeconds` from every `omc_run_team_start` call.
+
+**Step 2** — Use `omc_run_team_wait` with `timeout_ms` to bound the blocking call. If it times out, workers are still alive; call `omc_run_team_wait` again to keep waiting:
+
+```js
+// NEW — start (no timeoutSeconds)
+const { jobId } = await mcp__team__omc_run_team_start({
+  teamName: "my-team",
+  agentTypes: ["claude", "codex"],
+  tasks: [...],
+  cwd: "/path/to/project",
+})
+
+// Wait up to 5 minutes (workers keep running if this times out)
+const result = await mcp__team__omc_run_team_wait({
+  job_id: jobId,
+  timeout_ms: 300000,
+})
+
+// If result.status === 'running' the wait timed out; call wait again or inspect progress:
+// await mcp__team__omc_run_team_status({ job_id: jobId })
+// await mcp__team__omc_run_team_wait({ job_id: jobId, timeout_ms: 600000 })
+```
+
+**Step 3** — Call `omc_run_team_cleanup` only when you *intentionally* want to cancel and stop worker panes:
+
+```js
+// Explicit cancel — only when you want to stop the workers
+await mcp__team__omc_run_team_cleanup({ job_id: jobId })
+```
+
+### Common Patterns with `/omc-teams`
+
+**Pattern A — Wait with re-try on timeout (recommended)**
+
+```js
+// Start
+const { jobId } = await mcp__team__omc_run_team_start({ ... })
+
+// Wait loop: keep waiting until terminal state
+let result
+do {
+  result = await mcp__team__omc_run_team_wait({ job_id: jobId, timeout_ms: 300000 })
+} while (result.status === 'running')
+```
+
+**Pattern B — Non-blocking progress check**
+
+```js
+const { jobId } = await mcp__team__omc_run_team_start({ ... })
+
+// Do other work, then check progress
+const status = await mcp__team__omc_run_team_status({ job_id: jobId })
+if (status.status === 'running') {
+  // Not done yet; wait or come back later
+}
+```
+
+**Pattern C — Explicit cancel when you give up**
+
+```js
+const { jobId } = await mcp__team__omc_run_team_start({ ... })
+
+const result = await mcp__team__omc_run_team_wait({ job_id: jobId, timeout_ms: 60000 })
+if (result.status === 'running') {
+  // Decided to cancel — explicitly stop worker panes
+  await mcp__team__omc_run_team_cleanup({ job_id: jobId })
+}
+```
 
 ### Breaking Change
 
-Passing `timeoutSeconds` now returns an API error from `omc_run_team_start`.
+Passing `timeoutSeconds` to `omc_run_team_start` now returns an API error immediately:
+
+```
+Error: omc_run_team_start no longer accepts timeoutSeconds. Remove timeoutSeconds
+and use omc_run_team_wait timeout_ms to limit the wait call only (workers keep running
+until completion or explicit omc_run_team_cleanup).
+```
 
 ---
 

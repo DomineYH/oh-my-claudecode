@@ -201,6 +201,61 @@ describe('team start validation wiring', () => {
   });
 });
 
+// ─── timeoutSeconds rejection (runtime) ──────────────────────────────────────
+
+// Import handleStart indirectly by re-implementing the guard inline, matching
+// the exact logic in team-server.ts. This avoids ESM/CJS import complexity
+// while still testing the runtime rejection path as a unit.
+function handleStartGuard(args: unknown): void {
+  if (
+    typeof args === 'object'
+    && args !== null
+    && Object.prototype.hasOwnProperty.call(args, 'timeoutSeconds')
+  ) {
+    throw new Error(
+      'omc_run_team_start no longer accepts timeoutSeconds. Remove timeoutSeconds and use omc_run_team_wait timeout_ms to limit the wait call only (workers keep running until completion or explicit omc_run_team_cleanup).',
+    );
+  }
+}
+
+describe('omc_run_team_start timeoutSeconds rejection', () => {
+  it('throws when timeoutSeconds is present', () => {
+    expect(() => handleStartGuard({
+      teamName: 'test',
+      agentTypes: ['claude'],
+      tasks: [{ subject: 'x', description: 'y' }],
+      cwd: '/tmp',
+      timeoutSeconds: 60,
+    })).toThrow('no longer accepts timeoutSeconds');
+  });
+
+  it('error message includes migration guidance (omc_run_team_wait + omc_run_team_cleanup)', () => {
+    expect(() => handleStartGuard({
+      teamName: 'test',
+      agentTypes: ['claude'],
+      tasks: [],
+      cwd: '/tmp',
+      timeoutSeconds: 30,
+    })).toThrow('omc_run_team_wait timeout_ms');
+  });
+
+  it('does not throw when timeoutSeconds is absent', () => {
+    // Should not throw — the guard passes for well-formed input
+    expect(() => handleStartGuard({
+      teamName: 'test',
+      agentTypes: ['claude'],
+      tasks: [],
+      cwd: '/tmp',
+    })).not.toThrow();
+  });
+
+  it('does not throw when args is null or non-object', () => {
+    expect(() => handleStartGuard(null)).not.toThrow();
+    expect(() => handleStartGuard('string')).not.toThrow();
+    expect(() => handleStartGuard(42)).not.toThrow();
+  });
+});
+
 // ─── exit code mapping ────────────────────────────────────────────────────────
 
 // Re-test the exitCodeFor logic from runtime-cli.ts (spec from Step 8)

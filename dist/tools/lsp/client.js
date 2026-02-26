@@ -23,6 +23,7 @@ export class LspClient {
     buffer = Buffer.alloc(0);
     openDocuments = new Set();
     diagnostics = new Map();
+    diagnosticWaiters = new Map();
     workspaceRoot;
     serverConfig;
     initialized = false;
@@ -65,6 +66,8 @@ export class LspClient {
                 if (code !== 0) {
                     console.error(`LSP server exited with code ${code}`);
                 }
+                // Reject all pending requests to avoid unresolved promises
+                this.rejectPendingRequests(new Error(`LSP server exited (code ${code})`));
             });
             // Send initialize request
             this.initialize()
@@ -94,6 +97,17 @@ export class LspClient {
         this.pendingRequests.clear();
         this.openDocuments.clear();
         this.diagnostics.clear();
+    }
+    /**
+     * Reject all pending requests with the given error.
+     * Called on process exit to avoid dangling unresolved promises.
+     */
+    rejectPendingRequests(error) {
+        for (const [id, pending] of this.pendingRequests.entries()) {
+            clearTimeout(pending.timeout);
+            pending.reject(error);
+            this.pendingRequests.delete(id);
+        }
     }
     /**
      * Handle incoming data from the server
@@ -159,6 +173,13 @@ export class LspClient {
         if (notification.method === 'textDocument/publishDiagnostics') {
             const params = notification.params;
             this.diagnostics.set(params.uri, params.diagnostics);
+            // Wake any waiters registered via waitForDiagnostics()
+            const waiters = this.diagnosticWaiters.get(params.uri);
+            if (waiters && waiters.length > 0) {
+                this.diagnosticWaiters.delete(params.uri);
+                for (const wake of waiters)
+                    wake();
+            }
         }
         // Handle other notifications as needed
     }
@@ -272,7 +293,9 @@ export class LspClient {
      * Get the language ID for a file
      */
     getLanguageId(filePath) {
-        const ext = filePath.split('.').pop()?.toLowerCase() || '';
+        // parse().ext correctly handles dotfiles: parse('.eslintrc').ext === ''
+        // whereas split('.').pop() returns 'eslintrc' for dotfiles (incorrect)
+        const ext = parse(filePath).ext.slice(1).toLowerCase();
         const langMap = {
             'ts': 'typescript',
             'tsx': 'typescriptreact',
@@ -374,6 +397,39 @@ export class LspClient {
     getDiagnostics(filePath) {
         const uri = fileUri(filePath);
         return this.diagnostics.get(uri) || [];
+    }
+    /**
+     * Wait for the server to publish diagnostics for a file.
+     * Resolves as soon as textDocument/publishDiagnostics fires for the URI,
+     * or after `timeoutMs` milliseconds (whichever comes first).
+     * This replaces fixed-delay sleeps with a notification-driven approach.
+     */
+    waitForDiagnostics(filePath, timeoutMs = 2000) {
+        const uri = fileUri(filePath);
+        // If diagnostics are already present, resolve immediately.
+        if (this.diagnostics.has(uri)) {
+            return Promise.resolve();
+        }
+        return new Promise((resolve) => {
+            let resolved = false;
+            const timer = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    this.diagnosticWaiters.delete(uri);
+                    resolve();
+                }
+            }, timeoutMs);
+            // Store the resolver so handleNotification can wake it up.
+            const existing = this.diagnosticWaiters.get(uri) || [];
+            existing.push(() => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    resolve();
+                }
+            });
+            this.diagnosticWaiters.set(uri, existing);
+        });
     }
     /**
      * Prepare rename (check if rename is valid)

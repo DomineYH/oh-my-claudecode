@@ -2,7 +2,7 @@
 /**
  * Team MCP Server - tmux CLI worker runtime tools
  *
- * Exposes three tools for running tmux-based teams (claude/codex/gemini workers):
+ * Exposes three tools for running tmux-based teams (claude/codex/gemini/glm workers):
  *   omc_run_team_start  - spawn workers in background, return jobId immediately
  *   omc_run_team_status - non-blocking poll for job completion
  *   omc_run_team_wait   - blocking wait: polls internally, returns when done (one call instead of N)

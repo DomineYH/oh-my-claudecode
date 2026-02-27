@@ -1,4 +1,4 @@
-<!-- Generated: 2026-01-28 | Updated: 2026-01-31 -->
+<!-- Generated: 2026-01-28 | Updated: 2026-02-27 -->
 
 # oh-my-claudecode
 
@@ -361,3 +361,6 @@ Before context compaction, preserve critical state:
 3. If context is >80% full, proactively checkpoint state
 </session_context>
 <!-- OMX:RUNTIME:END -->
+
+
+<!-- MANUAL: omc-teams now supports `glm` workers via `opencode` CLI in addition to claude/codex/gemini. -->

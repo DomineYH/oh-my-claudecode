@@ -1,12 +1,12 @@
 ---
 name: omc-teams
-description: Spawn claude, codex, or gemini CLI workers in tmux panes for parallel task execution
+description: Spawn claude, codex, gemini, or glm CLI workers in tmux panes for parallel task execution
 aliases: []
 ---
 
 # OMC Teams Skill
 
-Spawn N CLI worker processes in tmux panes to execute tasks in parallel. Supports `claude`, `codex`, and `gemini` agent types. Unlike `/team` (which uses Claude Code's native `TeamCreate`/`Task` tools), this skill uses the tmux runtime to launch actual CLI processes in visible tmux panes.
+Spawn N CLI worker processes in tmux panes to execute tasks in parallel. Supports `claude`, `codex`, `gemini`, and `glm` agent types. Unlike `/team` (which uses Claude Code's native `TeamCreate`/`Task` tools), this skill uses the tmux runtime to launch actual CLI processes in visible tmux panes.
 
 ## Usage
 
@@ -14,12 +14,13 @@ Spawn N CLI worker processes in tmux panes to execute tasks in parallel. Support
 /oh-my-claudecode:omc-teams N:claude "task description"
 /oh-my-claudecode:omc-teams N:codex "task description"
 /oh-my-claudecode:omc-teams N:gemini "task description"
+/oh-my-claudecode:omc-teams N:glm "task description"
 ```
 
 ### Parameters
 
 - **N** - Number of CLI workers (1-10)
-- **agent-type** - `claude` (Claude CLI), `codex` (OpenAI Codex CLI), or `gemini` (Google Gemini CLI)
+- **agent-type** - `claude` (Claude CLI), `codex` (OpenAI Codex CLI), `gemini` (Google Gemini CLI), or `glm` (OpenCode CLI)
 - **task** - Task description to distribute across all workers
 
 ### Examples
@@ -28,6 +29,7 @@ Spawn N CLI worker processes in tmux panes to execute tasks in parallel. Support
 /omc-teams 2:claude "implement auth module with tests"
 /omc-teams 2:codex "review the auth module for security issues"
 /omc-teams 3:gemini "redesign UI components for accessibility"
+/omc-teams 2:glm "analyze architecture tradeoffs and suggest refactors"
 /omc-teams 1:codex "write comprehensive tests for src/api/"
 ```
 
@@ -37,6 +39,7 @@ Spawn N CLI worker processes in tmux panes to execute tasks in parallel. Support
 - **claude** CLI: `npm install -g @anthropic-ai/claude-code` (for claude workers)
 - **codex** CLI: `npm install -g @openai/codex` (for codex workers)
 - **gemini** CLI: `npm install -g @google/gemini-cli` (for gemini workers)
+- **glm** (OpenCode) CLI: install OpenCode and expose `opencode` on PATH (for glm workers)
 
 ## How It Works
 
@@ -56,7 +59,7 @@ Spawn N CLI worker processes in tmux panes to execute tasks in parallel. Support
 
 Extract from the user command:
 - `N` — number of workers (integer, 1–10)
-- `agent-type` — must be `claude`, `codex`, or `gemini`; reject anything else with an error
+- `agent-type` — must be `claude`, `codex`, `gemini`, or `glm`; reject anything else with an error
 - `task` — the task description
 
 ### Phase 2: Decompose task
@@ -162,6 +165,7 @@ state_write(mode="team", current_phase="completed", active=false)
 | `not inside tmux` | Shell not running inside a tmux session | Start tmux and rerun |
 | `codex: command not found` | Codex CLI not installed | `npm install -g @openai/codex` |
 | `gemini: command not found` | Gemini CLI not installed | `npm install -g @google/gemini-cli` |
+| `opencode: command not found` | OpenCode CLI not installed or PATH not configured | Install OpenCode CLI and make sure `opencode --version` works |
 | wait timeout error | `omc_run_team_wait` hit `timeout_ms` before completion | Call `omc_run_team_wait` again to keep waiting, or call `omc_run_team_cleanup` to explicitly stop worker panes |
 | `status: failed` | All workers exited with work remaining | Check stderr for crash details |
 
@@ -171,8 +175,8 @@ state_write(mode="team", current_phase="completed", active=false)
 
 | Aspect | `/team` | `/omc-teams` |
 |--------|---------|-------------|
-| Worker type | Claude Code agents (`Task(subagent_type=...)`) | claude / codex / gemini CLI processes |
+| Worker type | Claude Code agents (`Task(subagent_type=...)`) | claude / codex / gemini / glm(OpenCode) CLI processes |
 | Invocation | `TeamCreate` / `SendMessage` / `TeamDelete` | `mcp__team__omc_run_team_start` + `omc_run_team_wait` |
 | Coordination | Native Claude Code team messaging | tmux panes + inbox files + `done.json` sentinels |
 | Communication | Native Claude Code team messaging | File-based (inbox.md → done.json) |
-| Use when | You want Claude agents with full tool access | You want CLI autonomy (codex/gemini) at scale |
+| Use when | You want Claude agents with full tool access | You want CLI autonomy (codex/gemini/glm) at scale |

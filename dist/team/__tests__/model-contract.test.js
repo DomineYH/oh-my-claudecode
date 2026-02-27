@@ -25,6 +25,11 @@ describe('model-contract', () => {
             expect(c.agentType).toBe('gemini');
             expect(c.binary).toBe('gemini');
         });
+        it('returns contract for glm', () => {
+            const c = getContract('glm');
+            expect(c.agentType).toBe('glm');
+            expect(c.binary).toBe('opencode');
+        });
         it('throws for unknown agent type', () => {
             expect(() => getContract('unknown')).toThrow('Unknown agent type');
         });
@@ -42,6 +47,10 @@ describe('model-contract', () => {
         it('gemini includes --yolo', () => {
             const args = buildLaunchArgs('gemini', { teamName: 't', workerName: 'w', cwd: '/tmp' });
             expect(args).toContain('--yolo');
+        });
+        it('glm uses opencode without provider-specific defaults', () => {
+            const args = buildLaunchArgs('glm', { teamName: 't', workerName: 'w', cwd: '/tmp' });
+            expect(args).toEqual([]);
         });
         it('passes model flag when specified', () => {
             const args = buildLaunchArgs('codex', { teamName: 't', workerName: 'w', cwd: '/tmp', model: 'gpt-4' });
@@ -96,8 +105,9 @@ describe('model-contract', () => {
             expect(c.supportsPromptMode).toBe(true);
             expect(c.promptModeFlag).toBe('-p');
         });
-        it('claude does not support prompt mode', () => {
+        it('claude and glm do not support prompt mode', () => {
             expect(isPromptModeAgent('claude')).toBe(false);
+            expect(isPromptModeAgent('glm')).toBe(false);
         });
         it('codex supports prompt mode (positional argument, no flag)', () => {
             expect(isPromptModeAgent('codex')).toBe(true);
@@ -115,6 +125,7 @@ describe('model-contract', () => {
         });
         it('getPromptModeArgs returns empty array for non-prompt-mode agents', () => {
             expect(getPromptModeArgs('claude', 'Read inbox')).toEqual([]);
+            expect(getPromptModeArgs('glm', 'Read inbox')).toEqual([]);
         });
     });
 });

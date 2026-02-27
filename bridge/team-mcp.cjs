@@ -18073,7 +18073,7 @@ function validateJobId(job_id) {
 }
 var startSchema = external_exports.object({
   teamName: external_exports.string().describe('Slug name for the team (e.g. "auth-review")'),
-  agentTypes: external_exports.array(external_exports.string()).describe('Agent type per worker: "claude", "codex", or "gemini"'),
+  agentTypes: external_exports.array(external_exports.string()).describe('Agent type per worker: "claude", "codex", "gemini", or "glm"'),
   tasks: external_exports.array(external_exports.object({
     subject: external_exports.string().describe("Brief task title"),
     description: external_exports.string().describe("Full task description")
@@ -18228,12 +18228,12 @@ async function handleWait(args) {
 var TOOLS = [
   {
     name: "omc_run_team_start",
-    description: "Spawn tmux CLI workers (claude/codex/gemini) in the background. Returns jobId immediately. Poll with omc_run_team_status.",
+    description: "Spawn tmux CLI workers (claude/codex/gemini/glm) in the background. Returns jobId immediately. Poll with omc_run_team_status.",
     inputSchema: {
       type: "object",
       properties: {
         teamName: { type: "string", description: "Slug name for the team" },
-        agentTypes: { type: "array", items: { type: "string" }, description: '"claude", "codex", or "gemini" per worker' },
+        agentTypes: { type: "array", items: { type: "string" }, description: '"claude", "codex", "gemini", or "glm" per worker' },
         tasks: {
           type: "array",
           items: {

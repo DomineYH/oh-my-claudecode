@@ -104,6 +104,17 @@ var CONTRACTS = {
     parseOutput(rawOutput) {
       return rawOutput.trim();
     }
+  },
+  glm: {
+    agentType: "glm",
+    binary: "opencode",
+    installInstructions: "Install OpenCode CLI and ensure `opencode` is available on PATH",
+    buildLaunchArgs(_model, extraFlags = []) {
+      return [...extraFlags];
+    },
+    parseOutput(rawOutput) {
+      return rawOutput.trim();
+    }
   }
 };
 function getContract(agentType) {
@@ -1341,7 +1352,7 @@ async function shutdownTeam(teamName, sessionName, cwd, timeoutMs = 3e4, workerP
     teamName
   });
   const configData = await readJsonSafe((0, import_path9.join)(root, "config.json"));
-  const CLI_AGENT_TYPES = /* @__PURE__ */ new Set(["claude", "codex", "gemini"]);
+  const CLI_AGENT_TYPES = /* @__PURE__ */ new Set(["claude", "codex", "gemini", "glm"]);
   const agentTypes = configData?.agentTypes ?? [];
   const isCliWorkerTeam = agentTypes.length > 0 && agentTypes.every((t) => CLI_AGENT_TYPES.has(t));
   if (!isCliWorkerTeam) {

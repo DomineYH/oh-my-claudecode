@@ -2,7 +2,7 @@
 /**
  * Team MCP Server - tmux CLI worker runtime tools
  *
- * Exposes three tools for running tmux-based teams (claude/codex/gemini workers):
+ * Exposes three tools for running tmux-based teams (claude/codex/gemini/glm workers):
  *   omc_run_team_start  - spawn workers in background, return jobId immediately
  *   omc_run_team_status - non-blocking poll for job completion
  *   omc_run_team_wait   - blocking wait: polls internally, returns when done (one call instead of N)
@@ -61,7 +61,7 @@ function validateJobId(job_id) {
 // ---------------------------------------------------------------------------
 const startSchema = z.object({
     teamName: z.string().describe('Slug name for the team (e.g. "auth-review")'),
-    agentTypes: z.array(z.string()).describe('Agent type per worker: "claude", "codex", or "gemini"'),
+    agentTypes: z.array(z.string()).describe('Agent type per worker: "claude", "codex", "gemini", or "glm"'),
     tasks: z.array(z.object({
         subject: z.string().describe('Brief task title'),
         description: z.string().describe('Full task description'),
@@ -244,12 +244,12 @@ async function handleWait(args) {
 const TOOLS = [
     {
         name: 'omc_run_team_start',
-        description: 'Spawn tmux CLI workers (claude/codex/gemini) in the background. Returns jobId immediately. Poll with omc_run_team_status.',
+        description: 'Spawn tmux CLI workers (claude/codex/gemini/glm) in the background. Returns jobId immediately. Poll with omc_run_team_status.',
         inputSchema: {
             type: 'object',
             properties: {
                 teamName: { type: 'string', description: 'Slug name for the team' },
-                agentTypes: { type: 'array', items: { type: 'string' }, description: '"claude", "codex", or "gemini" per worker' },
+                agentTypes: { type: 'array', items: { type: 'string' }, description: '"claude", "codex", "gemini", or "glm" per worker' },
                 tasks: {
                     type: 'array',
                     items: {

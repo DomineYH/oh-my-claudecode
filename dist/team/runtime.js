@@ -598,11 +598,11 @@ export async function shutdownTeam(teamName, sessionName, cwd, timeoutMs = 30_00
         teamName,
     });
     const configData = await readJsonSafe(join(root, 'config.json'));
-    // CLI workers (claude/codex/gemini tmux pane processes) never write shutdown-ack.json.
+    // CLI workers (claude/codex/gemini/glm tmux pane processes) never write shutdown-ack.json.
     // Polling for ACK files on CLI worker teams wastes the full timeoutMs on every shutdown.
     // Detect CLI worker teams by checking if all agent types are known CLI types, and skip
     // ACK polling — the tmux kill below handles process cleanup instead.
-    const CLI_AGENT_TYPES = new Set(['claude', 'codex', 'gemini']);
+    const CLI_AGENT_TYPES = new Set(['claude', 'codex', 'gemini', 'glm']);
     const agentTypes = configData?.agentTypes ?? [];
     const isCliWorkerTeam = agentTypes.length > 0 && agentTypes.every(t => CLI_AGENT_TYPES.has(t));
     if (!isCliWorkerTeam) {

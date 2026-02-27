@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import { validateTeamName } from './team-name.js';
 
-export type CliAgentType = 'claude' | 'codex' | 'gemini';
+export type CliAgentType = 'claude' | 'codex' | 'gemini' | 'glm';
 
 export interface CliAgentContract {
   agentType: CliAgentType;
@@ -78,6 +78,17 @@ const CONTRACTS: Record<CliAgentType, CliAgentContract> = {
       const args = ['--yolo'];
       if (model) args.push('--model', model);
       return [...args, ...extraFlags];
+    },
+    parseOutput(rawOutput: string): string {
+      return rawOutput.trim();
+    },
+  },
+  glm: {
+    agentType: 'glm',
+    binary: 'opencode',
+    installInstructions: 'Install OpenCode CLI and ensure `opencode` is available on PATH',
+    buildLaunchArgs(_model?: string, extraFlags: string[] = []): string[] {
+      return [...extraFlags];
     },
     parseOutput(rawOutput: string): string {
       return rawOutput.trim();

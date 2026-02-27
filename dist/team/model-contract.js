@@ -64,6 +64,17 @@ const CONTRACTS = {
             return rawOutput.trim();
         },
     },
+    glm: {
+        agentType: 'glm',
+        binary: 'opencode',
+        installInstructions: 'Install OpenCode CLI and ensure `opencode` is available on PATH',
+        buildLaunchArgs(_model, extraFlags = []) {
+            return [...extraFlags];
+        },
+        parseOutput(rawOutput) {
+            return rawOutput.trim();
+        },
+    },
 };
 export function getContract(agentType) {
     const contract = CONTRACTS[agentType];
